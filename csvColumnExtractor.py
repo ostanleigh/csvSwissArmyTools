@@ -1,57 +1,62 @@
 import csv
-import json
 from os import path
 
-print("This script is designed to create a list of dictionaries from a CSV File.")
-print("This script assumes you can meet the following requirements to run:")
-print("		1) The file you are working with has clearly defined headers.")
-print("		2) You can review the headers ('.head') ")
-print("		3) You wish to leverage the headers as keys, create a dict per row, and use the row values as Dict vals.")
-
+print("\n Extract Columns from CSV File."
+      "\n This script is designed to let a user select columns by using column header names."
+      "\n The script assumes:"
+      "\n 1) You know the file name."
+      "\n 2) The desired file is located in the same directory as this script."
+      "\n 3) The file contains a header where column names already exist."
+      "\n 4) You know the exact case sensitive names of the file and column names you wish to select."
+      "\n"
+      "\n The output file will be saved to the same directory as the input file."
+      "")
 while True:
-    userFileVal = input("\n Dynamic Dictionaries from CSV file,"
-    "\n \n What is the name of the csv file you would like to work with? (Don't enter the file extension.):  ")
+    userFileVal = input(
+        "\n What is the name of the csv file you would like to work with? (Don't enter the file extension.):  ")
     try:
-        filename = path.exists(userFileVal+'.csv')
+        filename = path.exists(userFileVal + '.csv')
     except (FileNotFoundError) as err:
         print("Wrong file or file path")
     else:
         break
-#filename = input("What is the name of the csv file you would like to work with? (Don't enter the file extension.) ? ")
-with open (userFileVal+'.csv', 'r') as csvInputFile:
+userCountS = input("How many columns would you like to profile? Enter an integer: ")
+userCount = int(userCountS)
+userCols = [ ]
+for x in range(0, userCount):
+    userSelect = input("Enter column you would like to profile?: ")
+    userCols.append(userSelect)
+print(f"These are the columns you have selected: {userCols}")
+outFileName = input("What do you want to name your output file? Please enter a valid csv file name: ")
+
+
+def selectIndexes(rawHead, userCols, counter):
+    selectIndex = dict()
+    for item in rawHead:
+        if item in userCols:
+            selectIndex[ item ] = counter
+        # print(f"selectIndex[item] is: {selectIndex[item]}")
+        counter += 1
+    return (selectIndex)
+
+
+with open(userFileVal + '.csv', 'r') as csvInputFile:
     filereader = csv.reader(csvInputFile)
-    headerRaw = next(filereader)
-    header = headerRaw
-# If  file corruption introduces characters, or redundant index is in playce
-# header = headerRaw[1:]
-#use further indexing / slicing as needed
-    print(f"header is: {header}")
-    keyValsRaw = next(filereader)
-    keyVals = keyValsRaw[1:]
-# If  file corruption introduces characters, or redundant index is in playce
-#keyVals = keyValsRaw[1:]
-# use further indexing / slicing as needed
-    headerKeys = dict.fromkeys(header)
-    zipObj = zip(headerKeys,keyVals)
-    dictObj = dict(zipObj)
-    outFileName = input("What do you want to name your output file? Please enter a valid csv file name: ")
-    outDicts = []
-    with open (outFileName+'.json','w',newline='') as jsonOutputFile:
+    rawHead = next(filereader)
+userIndexes = selectIndexes(rawHead, userCols, 0)
+print(f"The Selected columns and their corresponding index values are: {userIndexes}")
+indexes = [ ]
+for x in rawHead:
+    for key in userIndexes:
+        if key == x:
+            indexes.append(userIndexes[ key ])
+print(f"The index values for the selected columns are: {indexes}")
+with open('songs.csv', 'r') as csvInputFile:
+    with open(outFileName + '.csv', 'w', newline='') as csvOutputFile:
         filereader = csv.reader(csvInputFile)
+        fileweriter = csv.writer(csvOutputFile)
         for line in filereader:
-            headerRaw = line
-            header = headerRaw
-            # If  file corruption introduces characters, or redundant index is in playce
-            # header = headerRaw[1:]
-            # use further indexing / slicing as needed
-            headerKeys = dict.fromkeys((header))
-            for nextLine in filereader:
-                vals = nextLine
-                # If  file corruption introduces characters, or redundant index is in playce
-                # vals = nextLine[1:]
-                # use further indexing / slicing as needed
-                zipObj = zip(header, vals)
-                dictObj = dict(zipObj)
-                outDicts.append(dictObj)
-                filewriter = json.dump(outDicts,jsonOutputFile)
-print("Close")
+            outCols = [ ]
+            for index in indexes:
+                outCols.append(line[ index ])
+            fileweriter.writerow(outCols)
