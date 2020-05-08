@@ -2,9 +2,6 @@ import csv
 import json
 from os import path
 
-import csv
-import json
-from os import path
 print("This script is designed to create a list of dictionaries from a CSV File.")
 print("This script assumes you can meet the following requirements to run:")
 print("		1) The file you are working with has clearly defined headers.")
